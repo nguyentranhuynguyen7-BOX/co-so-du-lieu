@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tin học 11 - Một số thuộc tính cơ bản của CSDL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-border: rgba(56, 189, 248, 0.2);
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent-purple: #a855f7;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Canvas background */
+    #bgCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Top Navigation bar */
+    .top-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(7, 11, 20, 0.9) 0%, transparent 100%);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-badge i {
+      color: var(--primary);
+      filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.6));
+      font-size: 1.3rem;
+    }
+
+    .brand-badge .pill {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--primary);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(0, 242, 254, 0.2);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+    }
+
+    /* Presentation Container */
+    .deck-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 90px 48px 100px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.94) translateY(30px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+    }
+
+    .slide.prev {
+      opacity: 0;
+      transform: scale(1.05) translateY(-30px);
+    }
+
+    /* Glass Card Standard */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      padding: 32px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      transition: 0.6s;
+      pointer-events: none;
+    }
+
+    .glass-card:hover::before {
+      left: 100%;
+    }
+
+    /* Slide 1: Hero Banner */
+    .hero-content {
+      text-align: center;
+      max-width: 950px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      color: var(--primary);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      animation: pulseGlow 2.5s infinite;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #ffffff 20%, var(--primary) 70%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(0, 242, 254, 0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 1.35rem;
+      color: var(--text-muted);
+      max-width: 750px;
+      line-height: 1.6;
+    }
+
+    .hero-info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .info-box:hover {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.3);
+      transform: translateY(-4px);
+    }
+
+    .info-box .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-box .val {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Hexagon wheel on Slide 2 / 3 */
+    .wheel-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      width: 100%;
+      max-width: 1200px;
+      align-items: center;
+    }
+
+    .prop-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+
+    .prop-card-mini {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prop-card-mini::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .prop-card-mini:hover {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: var(--primary);
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 10px 25px rgba(0, 242, 254, 0.2);
+    }
+
+    .prop-card-mini:hover::after {
+      width: 100%;
+    }
+
+    .prop-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .prop-card-mini .details h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .prop-card-mini .details p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Standard Slide Structure: 2 Columns */
+    .slide-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      width: 100%;
+      max-width: 1240px;
+      height: 100%;
+      max-height: 560px;
+      align-items: center;
+    }
+
+    .slide-text-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tag-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--primary);
+    }
+
+    .slide-heading {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .slide-desc {
+      font-size: 1.05rem;
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
+
+    .bullet-points {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .bullet-item i {
+      color: var(--primary);
+      margin-top: 3px;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .slide-interactive-col {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 24px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      position: relative;
+      height: 100%;
+      justify-content: center;
+    }
+
+    /* Demo 1: Table Structure */
+    .db-table-demo {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 0.9rem;
+    }
+
+    .db-table-demo th {
+      background: rgba(0, 242, 254, 0.15);
+      color: var(--primary);
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid rgba(0, 242, 254, 0.3);
+    }
+
+    .db-table-demo td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      color: #e2e8f0;
+      transition: all 0.2s;
+    }
+
+    .db-table-demo tr:hover td {
+      background: rgba(0, 242, 254, 0.08);
+      color: #fff;
+    }
+
+    .table-indicator {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+    }
+
+    /* Demo 2: Redundancy Comparison */
+    .compare-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .compare-box {
+      padding: 14px 18px;
+      border-radius: 14px;
+      position: relative;
+    }
+
+    .compare-box.bad {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .compare-box.good {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .compare-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .compare-box.bad .compare-header { color: #f87171; }
+    .compare-box.good .compare-header { color: #34d399; }
+
+    .tag-redundant {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-decoration: line-through;
+      animation: blinkRed 2s infinite;
+    }
+
+    /* Demo 3: Layer Architecture */
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .stack-node {
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .stack-node.active-app {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+    }
+
+    .stack-node.active-db {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
+
+    .stack-node.active-storage {
+      border-color: var(--accent-amber);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+    }
+
+    .layer-arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      animation: bounceArrow 1.5s infinite;
+    }
+
+    /* Demo 4: Interactive Constraint Checking */
+    .constraint-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .input-field-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .interactive-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .interactive-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-test {
+      background: var(--primary);
+      color: #04101e;
+      border: none;
+      font-weight: 700;
+      padding: 0 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-test:hover {
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+      transform: scale(1.03);
+    }
+
+    .validation-result {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+
+    /* Demo 5: Bank Transaction Consistency */
+    .transaction-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .accounts-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .acc-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .acc-box .name {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .acc-box .balance {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .transaction-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-item.success {
+      border-left-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+      color: #6ee7b7;
+    }
+
+    .step-item.failed {
+      border-left-color: var(--accent-red);
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+    }
+
+    /* Demo 6: Security & Authorization */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .role-card {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .role-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .permission-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .permission-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* SGK Summary Box (Slide 9) */
+    .sgk-card {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.07) 0%, rgba(245, 158, 11, 0.02) 100%);
+      border: 2px dashed #f59e0b;
+      border-radius: 24px;
+      padding: 36px 44px;
+      max-width: 950px;
+      width: 100%;
+      box-shadow: 0 15px 40px rgba(245, 158, 11, 0.1);
+      position: relative;
+    }
+
+    .sgk-title-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fbbf24;
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .sgk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #fef3c7;
+    }
+
+    .sgk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .sgk-item .dot {
+      color: #fbbf24;
+      font-size: 1.4rem;
+      line-height: 1.3;
+    }
+
+    .sgk-item b {
+      color: #fde68a;
+    }
+
+    /* Slide 10: Interactive Mini Quiz */
+    .quiz-card {
+      max-width: 850px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .quiz-q-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.5;
+    }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .quiz-opt {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quiz-opt:hover {
+      background: rgba(0, 242, 254, 0.12);
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-opt.correct {
+      background: rgba(16, 185, 129, 0.25) !important;
+      border-color: var(--accent-green) !important;
+      color: #34d399 !important;
+      font-weight: 700;
+    }
+
+    .quiz-opt.wrong {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: var(--accent-red) !important;
+      color: #f87171 !important;
+      animation: shakeWrong 0.4s ease;
+    }
+
+    @keyframes shakeWrong {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    /* Slide 12: Thank you slide */
+    .thankyou-card {
+      text-align: center;
+      max-width: 980px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      padding: 40px 36px;
+      position: relative;
+    }
+
+    .heart-pulse {
+      display: inline-block;
+      color: #ec4899;
+      animation: heartbeat 1.5s infinite;
+      filter: drop-shadow(0 0 15px rgba(236, 72, 153, 0.7));
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+    }
+
+    .thankyou-title {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 15%, var(--primary) 50%, var(--accent-purple) 85%, var(--accent-pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(0, 242, 254, 0.25);
+    }
+
+    .thankyou-subtitle {
+      font-size: 1.2rem;
+      color: #cbd5e1;
+      max-width: 780px;
+      line-height: 1.6;
+    }
+
+    .thankyou-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .thankyou-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .thankyou-box:hover {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: var(--primary);
+      transform: translateY(-4px);
+    }
+
+    .thankyou-box i {
+      font-size: 2.2rem;
+      margin-bottom: 4px;
+    }
+
+    .thankyou-box h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .thankyou-box p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      background: linear-gradient(0deg, rgba(7, 11, 20, 0.95) 0%, transparent 100%);
+      backdrop-filter: blur(8px);
+    }
+
+    .slide-counter {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .slide-counter span {
+      color: var(--primary);
+      font-size: 1.3rem;
+    }
+
+    .progress-bar-wrap {
+      flex: 1;
+      max-width: 480px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0 30px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--secondary), var(--primary));
+      border-radius: 999px;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+    }
+
+    .deck-arrows {
+      display: flex;
+      gap: 12px;
+    }
+
+    .arrow-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .arrow-btn:hover {
+      background: var(--primary);
+      color: #050d1a;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+
+    .arrow-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Key indicator pills */
+    .key-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #e2e8f0;
+    }
+
+    /* Animations */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(0, 242, 254, 0.5); }
+    }
+
+    @keyframes blinkRed {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes bounceArrow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    /* Slide Thumbnails Quick Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-modal {
+      background: #0f172a;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 950px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drawer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .drawer-thumb {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .drawer-thumb:hover, .drawer-thumb.active {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .drawer-thumb span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .slide-2col, .wheel-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        overflow-y: auto;
+      }
+      .hero-title {
+        font-size: 2.2rem;
+      }
+      .slide-heading {
+        font-size: 1.8rem;
+      }
+      .drawer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Particle Network -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header class="top-nav">
+    <div class="brand-badge">
+      <i class="fa-solid fa-database"></i>
+      <span>TIN HỌC 11</span>
+      <span class="pill">Kết nối tri thức</span>
+    </div>
+    <div class="top-controls">
+      <button class="nav-btn" id="btnDrawer" title="Xem danh sách Slide">
+        <i class="fa-solid fa-grip"></i> Mục lục
+      </button>
+      <button class="nav-btn" id="btnSound" title="Bật/Tắt âm thanh hiệu ứng">
+        <i class="fa-solid fa-volume-high"></i> Âm thanh
+      </button>
+      <button class="nav-btn" id="btnFullscreen" title="Toàn màn hình (F11)">
+        <i class="fa-solid fa-expand"></i> Phóng to
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Deck Presentation Area -->
+  <main class="deck-container" id="deckContainer">
+
+    <!-- SLIDE 1: Cover / Bìa -->
+    <section class="slide active" data-index="0">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fa-solid fa-graduation-cap"></i> BÀI 11: CƠ SỞ DỮ LIỆU
+        </div>
+        <h1 class="hero-title">MỘT SỐ THUỘC TÍNH CƠ BẢN CỦA CSDL</h1>
+        <p class="hero-subtitle">
+          Khám phá 6 thuộc tính nền tảng xây dựng nên hệ thống quản trị dữ liệu hiện đại, an toàn và tối ưu trong kỷ nguyên số.
+        </p>
+
+        <div class="hero-info-grid">
+          <div class="info-box">
+            <span class="label">Môn học</span>
+            <span class="val">Tin học 11</span>
+          </div>
+          <div class="info-box">
+            <span class="label">Nội dung thuyết trình</span>
+            <span class="val">2.b. Một số thuộc tính cơ bản của CSDL</span>
+          </div>
+          <div class="info-box">
+            <span class="label">Tổ chức thực hiện</span>
+            <span class="val">Tổ 4</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 15px;">
+          <button class="nav-btn" onclick="nextSlide()" style="padding: 12px 28px; background: var(--primary); color: #04101e; border: none; font-size: 1rem;">
+            Bắt đầu bài thuyết trình <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Định nghĩa CSDL & Đặt vấn đề -->
+    <section class="slide" data-index="1">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category">
+            <i class="fa-solid fa-book-open"></i> Đặt vấn đề & Khái niệm
+          </div>
+          <h2 class="slide-heading">Cơ sở dữ liệu (CSDL) là gì?</h2>
+          <p class="slide-desc">
+            Trong thời đại số, dữ liệu không thể lưu trữ rời rạc như các mẩu giấy hay file văn bản thông thường. 
+            CSDL ra đời để giải quyết bài toán quản lý tập trung và chuẩn hóa.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-circle-check"></i>
+              <span><b>Định nghĩa SGK:</b> CSDL là một tập hợp dữ liệu có liên quan với nhau, được lưu trữ một cách có tổ chức trong hệ thống máy tính.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-lightbulb"></i>
+              <span><b>Câu hỏi cốt lõi:</b> Làm sao để CSDL không bị trùng lặp, không bị sai lệch khi nhiều người cùng sửa, và luôn được bảo mật tuyệt đối?</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col" style="text-align: center;">
+          <div style="font-size: 3.5rem; color: var(--primary); margin-bottom: 12px; filter: drop-shadow(0 0 20px rgba(0,242,254,0.4));">
+            <i class="fa-solid fa-server"></i>
+          </div>
+          <h3 style="font-size: 1.3rem; margin-bottom: 8px;">Hệ Thống CSDL Chuẩn</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+            Để vận hành trơn tru và đáng tin cậy, bất kỳ CSDL nào cũng phải đáp ứng đầy đủ <b>6 thuộc tính cơ bản</b> sau đây.
+          </p>
+          <div style="margin-top: 15px;">
+            <button class="nav-btn" onclick="goToSlide(2)" style="margin: 0 auto;">
+              <i class="fa-solid fa-cubes"></i> Xem 6 thuộc tính ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Tổng quan 6 thuộc tính (Tương tác click) -->
+    <section class="slide" data-index="2">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div class="tag-category"><i class="fa-solid fa-compass"></i> Bản đồ kiến thức</div>
+        <h2 class="slide-heading" style="font-size: 2.2rem;">6 Thuộc Tính Cơ Bản Của CSDL</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">(Bấm vào từng thuộc tính để khám phá chi tiết)</p>
+      </div>
+
+      <div class="prop-grid-6" style="max-width: 1000px;">
+        <div class="prop-card-mini" onclick="goToSlide(3)">
+          <div class="prop-icon-wrap" style="background: rgba(0, 242, 254, 0.15); color: var(--primary);">
+            <i class="fa-solid fa-table-cells"></i>
+          </div>
+          <div class="details">
+            <h4>1. Tính cấu trúc</h4>
+            <p>Tổ chức dạng bảng gồm hàng và cột rõ ràng, định hình kiểu dữ liệu.</p>
+          </div>
+        </div>
+
+        <div class="prop-card-mini" onclick="goToSlide(4)">
+          <div class="prop-icon-wrap" style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">
+            <i class="fa-solid fa-clone"></i>
+          </div>
+          <div class="details">
+            <h4>2. Tính không dư thừa</h4>
+            <p>Hạn chế tối đa lưu trùng lặp, tiết kiệm bộ nhớ và tránh sai lệch.</p>
+          </div>
+        </div>
+
+        <div class="prop-card-mini" onclick="goToSlide(5)">
+          <div class="prop-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">
+            <i class="fa-solid fa-link-slash"></i>
+          </div>
+          <div class="details">
+            <h4>3. Tính độc lập dữ liệu</h4>
+            <p>Tách biệt dữ liệu và ứng dụng, thay đổi lưu trữ không cần viết lại app.</p>
+          </div>
+        </div>
+
+        <div class="prop-card-mini" onclick="goToSlide(6)">
+          <div class="prop-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="details">
+            <h4>4. Tính toàn vẹn</h4>
+            <p>Dữ liệu phải thỏa mãn ràng buộc thực tế (điểm 0-10, tuổi > 0...).</p>
+          </div>
+        </div>
+
+        <div class="prop-card-mini" onclick="goToSlide(7)">
+          <div class="prop-icon-wrap" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </div>
+          <div class="details">
+            <h4>5. Tính nhất quán</h4>
+            <p>Dữ liệu luôn chuẩn xác sau cập nhật, không xảy ra mâu thuẫn giao dịch.</p>
+          </div>
+        </div>
+
+        <div class="prop-card-mini" onclick="goToSlide(8)">
+          <div class="prop-icon-wrap" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div class="details">
+            <h4>6. Bảo mật và an toàn</h4>
+            <p>Chống truy cập trái phép, phân quyền cụ thể và phục hồi khi có sự cố.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Thuộc tính 1 - Tính cấu trúc -->
+    <section class="slide" data-index="3">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: var(--primary);">
+            <i class="fa-solid fa-table-cells"></i> Thuộc tính 1 / 6
+          </div>
+          <h2 class="slide-heading">Tính Cấu Trúc</h2>
+          <p class="slide-desc">
+            Dữ liệu trong CSDL được lưu trữ theo một cấu trúc xác định, phổ biến và trực quan nhất là <b>dạng Bảng (Table)</b> gồm các hàng và cột.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-table-columns"></i>
+              <span><b>Cột (Trường / Field):</b> Thể hiện thuộc tính của đối tượng (VD: Mã HS, Họ tên, Điểm).</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-grip-lines"></i>
+              <span><b>Hàng (Bản ghi / Record):</b> Thể hiện thông tin đầy đủ của một cá thể đối tượng cụ thể.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-bolt"></i>
+              <span><b>Lợi ích:</b> Giúp máy tính dễ dàng tìm kiếm, lọc và phân tích dữ liệu với tốc độ cao.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div style="font-weight: 700; color: var(--primary); font-size: 0.95rem; margin-bottom: 8px;">
+            <i class="fa-solid fa-eye"></i> Mô phỏng bảng dữ liệu Học Sinh (Hàng & Cột)
+          </div>
+          
+          <table class="db-table-demo" id="demoTable">
+            <thead>
+              <tr>
+                <th>Mã_HS (Cột 1)</th>
+                <th>Họ_Tên (Cột 2)</th>
+                <th>Lớp (Cột 3)</th>
+                <th>Điểm_TB (Cột 4)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HS001</td>
+                <td>Vũ Thị Quỳnh Như</td>
+                <td>11A4</td>
+                <td><b style="color: #34d399;">9.8</b></td>
+              </tr>
+              <tr>
+                <td>HS002</td>
+                <td>Nguyễn Trấn Huy</td>
+                <td>11A4</td>
+                <td><b style="color: #34d399;">6.3</b></td>
+              </tr>
+              <tr>
+                <td>HS003</td>
+                <td>Nguyễn Hữu long Nhật</td>
+                <td>11A4</td>
+                <td><b style="color: #34d399;">8.0</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="table-indicator">
+            <span><i class="fa-solid fa-arrow-down"></i> 4 Thuộc tính (Cột)</span>
+            <span><i class="fa-solid fa-arrow-right"></i> 3 Bản ghi (Hàng)</span>
+          </div>
+
+          <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+            Rê chuột vào bảng để thấy cấu trúc từng dòng dữ liệu được tách biệt độc lập!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Thuộc tính 2 - Tính không dư thừa -->
+    <section class="slide" data-index="4">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: var(--accent-purple);">
+            <i class="fa-solid fa-clone"></i> Thuộc tính 2 / 6
+          </div>
+          <h2 class="slide-heading">Tính Không Dư Thừa</h2>
+          <p class="slide-desc">
+            Trong CSDL, cần hạn chế tối đa việc lưu trữ các dữ liệu <b>trùng lặp</b>, cũng như những dữ liệu có thể dễ dàng suy ra/tính toán từ dữ liệu sẵn có.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i>
+              <span><b>Hậu quả dư thừa:</b> Lãng phí ổ cứng, khi cập nhật phải sửa ở nhiều nơi; nếu quên 1 nơi sẽ dẫn đến sai lệch thông tin!</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-check" style="color: var(--accent-green);"></i>
+              <span><b>Giải pháp:</b> Tách bảng và liên kết bằng khóa (VD: Không lưu lặp lại địa chỉ trường học vào từng hồ sơ học sinh).</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div class="compare-container">
+            <div class="compare-box bad">
+              <div class="compare-header">
+                <span><i class="fa-solid fa-circle-xmark"></i> CSDL DƯ THỪA (TRÙNG LẶP)</span>
+                <span style="font-size: 0.75rem;">Lãng phí bộ nhớ</span>
+              </div>
+              <div style="font-size: 0.82rem; line-height: 1.6;">
+                • Học sinh Như: Lớp 11A4, <span class="tag-redundant">Cô Thuận - GVCN</span>, Phòng 6<br>
+                • Học sinh Huy: Lớp 11A4, <span class="tag-redundant">Cô Thuận - GVCN</span>, Phòng 6<br>
+                • Học sinh Nhật: Lớp 11A4, <span class="tag-redundant">Cô Thuận - GVCN</span>, Phòng 6
+              </div>
+            </div>
+
+            <div class="compare-box good">
+              <div class="compare-header">
+                <span><i class="fa-solid fa-circle-check"></i> CSDL KHÔNG DƯ THỪA (TỐI ƯU)</span>
+                <span style="font-size: 0.75rem;">Liên kết khóa thông minh</span>
+              </div>
+              <div style="font-size: 0.82rem; line-height: 1.6;">
+                <b>Bảng Lớp:</b> Mã 11A4 ➔ Cô Thuận (Chỉ lưu 1 lần duy nhất!)<br>
+                <b>Bảng Học Sinh:</b> Chỉ cần ghi Mã Lớp = 11A4.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Thuộc tính 3 - Tính độc lập dữ liệu -->
+    <section class="slide" data-index="5">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: var(--accent-green);">
+            <i class="fa-solid fa-link-slash"></i> Thuộc tính 3 / 6
+          </div>
+          <h2 class="slide-heading">Tính Độc Lập Dữ Liệu</h2>
+          <p class="slide-desc">
+            Là khả năng các mô đun phần mềm ứng dụng <b>không cần phải sửa đổi/cập nhật</b> khi ta thay đổi cách thức tổ chức hoặc thiết bị lưu trữ dữ liệu.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-user-gear"></i>
+              <span><b>Độc lập mức logic & vật lý:</b> Người dùng và lập trình viên ứng dụng chỉ cần làm việc với giao diện phần mềm, không cần quan tâm dữ liệu nằm ở ổ cứng nào, dùng định dạng gì bên dưới.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-server"></i>
+              <span>Khi nhà trường nâng cấp máy chủ từ HDD sang SSD, hệ thống website vnEdu/Smas vẫn chạy bình thường mà không cần viết lại mã nguồn!</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div class="layer-stack">
+            <div class="stack-node active-app">
+              <div>
+                <i class="fa-solid fa-mobile-screen" style="color: var(--accent-purple); margin-right: 8px;"></i>
+                <b>Tầng Ứng Dụng (App / Web)</b>
+              </div>
+              <span style="font-size: 0.8rem; color: var(--accent-purple);">Giao diện người dùng</span>
+            </div>
+
+            <div class="layer-arrow"><i class="fa-solid fa-arrows-up-down"></i> Độc lập hoàn toàn</div>
+
+            <div class="stack-node active-db">
+              <div>
+                <i class="fa-solid fa-database" style="color: var(--primary); margin-right: 8px;"></i>
+                <b>Hệ Quản Trị CSDL (DBMS)</b>
+              </div>
+              <span style="font-size: 0.8rem; color: var(--primary);">Xử lý truy vấn SQL</span>
+            </div>
+
+            <div class="layer-arrow"><i class="fa-solid fa-arrows-up-down"></i> Độc lập lưu trữ</div>
+
+            <div class="stack-node active-storage">
+              <div>
+                <i class="fa-solid fa-hard-drive" style="color: var(--accent-amber); margin-right: 8px;"></i>
+                <b>Tầng Lưu Trữ Vật Lý</b>
+              </div>
+              <span style="font-size: 0.8rem; color: var(--accent-amber);">SSD, HDD, Cloud...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Thuộc tính 4 - Tính toàn vẹn (Có test thử nghiệm) -->
+    <section class="slide" data-index="6">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: var(--accent-amber);">
+            <i class="fa-solid fa-shield-halved"></i> Thuộc tính 4 / 6
+          </div>
+          <h2 class="slide-heading">Tính Toàn Vẹn</h2>
+          <p class="slide-desc">
+            Các giá trị dữ liệu lưu trữ <b>phải thỏa mãn những ràng buộc cụ thể</b> tùy thuộc vào thực tế cuộc sống mà nó phản ánh.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-sliders"></i>
+              <span><b>Ràng buộc miền giá trị:</b> Điểm kiểm tra phải từ <code>0</code> đến <code>10</code>, không được là số âm hay lớn hơn 10.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-calendar-days"></i>
+              <span><b>Ràng buộc logic:</b> Ngày sinh phải nhỏ hơn ngày nhập học; Giới tính chỉ nhận: Nam / Nữ.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-ban"></i>
+              <span>CSDL sẽ lập tức từ chối lưu nếu dữ liệu nhập vào vi phạm tính toàn vẹn!</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div class="constraint-box">
+            <div style="font-weight: 700; color: var(--accent-amber);">
+              <i class="fa-solid fa-flask"></i> THỬ NGHIỆM TÍNH TOÀN VẸN
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Quy tắc hệ thống: Điểm thi Tin học 11 phải là số trong khoảng [0.0 - 10.0]
+            </p>
+
+            <div class="input-group">
+              <label>Nhập thử một điểm số bất kỳ để kiểm tra:</label>
+              <div class="input-field-row">
+                <input type="number" step="0.5" id="scoreInput" class="interactive-input" placeholder="Ví dụ: 8.5 hoặc 15 hoặc -2..." value="12">
+                <button class="btn-test" onclick="checkIntegrity()">Kiểm tra</button>
+              </div>
+            </div>
+
+            <div id="integrityResult" class="validation-result" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span><b>Lỗi vi phạm toàn vẹn:</b> Điểm 12 > 10. Hệ thống CSDL từ chối ghi nhận!</span>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button class="nav-btn" style="font-size: 0.75rem; padding: 4px 10px;" onclick="setScore(9.5)">Thử: 9.5</button>
+              <button class="nav-btn" style="font-size: 0.75rem; padding: 4px 10px;" onclick="setScore(-1)">Thử: -1</button>
+              <button class="nav-btn" style="font-size: 0.75rem; padding: 4px 10px;" onclick="setScore(11)">Thử: 11</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Thuộc tính 5 - Tính nhất quán (Mô phỏng Chuyển khoản) -->
+    <section class="slide" data-index="7">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: #60a5fa;">
+            <i class="fa-solid fa-arrows-rotate"></i> Thuộc tính 5 / 6
+          </div>
+          <h2 class="slide-heading">Tính Nhất Quán</h2>
+          <p class="slide-desc">
+            Dữ liệu trong CSDL phải được bảo đảm <b>đúng đắn sau mọi thao tác cập nhật</b>, kể cả khi xảy ra sự cố đột ngột (mất điện, rớt mạng...).
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-money-bill-transfer"></i>
+              <span><b>Ví dụ chuyển tiền:</b> Số tiền bị trừ ở tài khoản A thì <i>bắt buộc</i> phải được cộng vào tài khoản B. Tuyệt đối không thể trừ tiền ở A mà B không nhận được!</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-plane-departure"></i>
+              <span><b>Ví dụ đặt vé:</b> Không thể để hai đại lý bán cùng 1 ghế máy bay cho 2 khách hàng khác nhau.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Nếu giữa chừng gặp sự cố, hệ thống sẽ tự động <b>Rollback (hoàn tác)</b> về trạng thái ban đầu.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div class="transaction-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; color: #60a5fa;"><i class="fa-solid fa-wallet"></i> Mô phỏng Giao dịch Ngân hàng</span>
+              <button class="nav-btn" style="font-size: 0.8rem; padding: 4px 12px;" onclick="runTransactionDemo()">
+                <i class="fa-solid fa-play"></i> Chạy thử
+              </button>
+            </div>
+
+            <div class="accounts-view">
+              <div class="acc-box">
+                <div class="name">Tài khoản A (Người gửi)</div>
+                <div class="balance" id="accABalance">5.000.000 đ</div>
+              </div>
+              <div class="acc-box">
+                <div class="name">Tài khoản B (Người nhận)</div>
+                <div class="balance" id="accBBalance">2.000.000 đ</div>
+              </div>
+            </div>
+
+            <div class="transaction-steps">
+              <div class="step-item" id="txStep1">
+                <span>1. Bắt đầu giao dịch chuyển 1.000.000 đ</span>
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div class="step-item" id="txStep2">
+                <span>2. Trừ 1.000.000 đ từ Tài khoản A</span>
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div class="step-item" id="txStep3">
+                <span>3. Cộng 1.000.000 đ vào Tài khoản B</span>
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div class="step-item" id="txStatus" style="font-weight: 700; justify-content: center;">
+                Sẵn sàng thực hiện
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Thuộc tính 6 - Bảo mật và an toàn -->
+    <section class="slide" data-index="8">
+      <div class="slide-2col">
+        <div class="slide-text-col">
+          <div class="tag-category" style="color: #f87171;">
+            <i class="fa-solid fa-lock"></i> Thuộc tính 6 / 6
+          </div>
+          <h2 class="slide-heading">Bảo Mật & An Toàn</h2>
+          <p class="slide-desc">
+            Dữ liệu phải được bảo vệ an toàn, ngăn chặn truy xuất trái phép, chống việc sao chép/sửa đổi không hợp lệ và có cơ chế khôi phục khi gặp thảm họa.
+          </p>
+          <div class="bullet-points">
+            <div class="bullet-item">
+              <i class="fa-solid fa-id-badge"></i>
+              <span><b>Phân quyền chặt chẽ:</b> Với bảng điểm, học sinh chỉ có quyền <b>Xem</b>; chỉ Giáo viên bộ môn mới có quyền <b>Nhập/Sửa</b> điểm.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-shield-virus"></i>
+              <span><b>Bảo mật thông tin:</b> Người không có thẩm quyền không thể xem số dư ngân hàng hoặc thông tin cá nhân của người khác.</span>
+            </div>
+            <div class="bullet-item">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span><b>An toàn dữ liệu:</b> Sao lưu định kỳ (Backup), phục hồi dữ liệu khi hỏng ổ cứng hay máy chủ bị tấn công.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-interactive-col">
+          <div style="font-weight: 700; color: #f87171; margin-bottom: 4px;">
+            <i class="fa-solid fa-users-gear"></i> Mô hình phân quyền thực tế trong trường học
+          </div>
+
+          <div class="role-grid">
+            <div class="role-card">
+              <div class="role-header" style="color: var(--primary);">
+                <i class="fa-solid fa-user-graduate"></i> Học Sinh
+              </div>
+              <ul class="permission-list">
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Xem thời khóa biểu</li>
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Xem điểm cá nhân</li>
+                <li><i class="fa-solid fa-xmark" style="color: var(--accent-red);"></i> Sửa điểm học tập</li>
+                <li><i class="fa-solid fa-xmark" style="color: var(--accent-red);"></i> Xem điểm học sinh khác</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <div class="role-header" style="color: var(--accent-amber);">
+                <i class="fa-solid fa-chalkboard-user"></i> Giáo Viên
+              </div>
+              <ul class="permission-list">
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Xem toàn bộ lớp</li>
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Nhập & sửa điểm thi</li>
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Đánh giá hạnh kiểm</li>
+                <li><i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Xuất báo cáo điểm</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top: 6px; padding: 10px 14px; border-radius: 12px; background: rgba(0, 242, 254, 0.08); border: 1px dashed rgba(0, 242, 254, 0.3); font-size: 0.85rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-floppy-disk" style="color: var(--primary); font-size: 1.2rem;"></i>
+            <span>Cơ chế <b>Auto-Backup & Redundancy</b> bảo vệ dữ liệu không bị mất mát khi máy chủ gặp sự cố vật lý.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Tóm tắt SGK (Hộp vàng đặc trưng Kết nối tri thức) -->
+    <section class="slide" data-index="9">
+      <div class="sgk-card">
+        <div class="sgk-title-bar">
+          <i class="fa-solid fa-bookmark"></i> TÓM LẠI
+        </div>
+        <div class="sgk-list">
+          <div class="sgk-item">
+            <span class="dot"><i class="fa-solid fa-circle"></i></span>
+            <span>
+              <b>CSDL là gì:</b> CSDL là một tập hợp dữ liệu có liên quan với nhau, được lưu trữ một cách có tổ chức trong hệ thống máy tính.
+            </span>
+          </div>
+          <div class="sgk-item">
+            <span class="dot"><i class="fa-solid fa-circle"></i></span>
+            <span>
+              <b>Một số thuộc tính cơ bản của CSDL bao gồm:</b> 
+              <br><br>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 0.95rem;">
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  1. Tính cấu trúc
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  2. Tính không dư thừa
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  3. Tính độc lập
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  4. Tính toàn vẹn
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  5. Tính nhất quán
+                </div>
+                <div style="background: rgba(251, 191, 36, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                  6. Tính bảo mật & an toàn
+                </div>
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <div style="margin-top: 28px; text-align: center;">
+          <button class="nav-btn" onclick="nextSlide()" style="background: #f59e0b; color: #1c1301; border: none; font-size: 1rem; margin: 0 auto;">
+            Tham gia Mini-Game đố vui tương tác <i class="fa-solid fa-gamepad"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: Đố vui tương tác củng cố bài học -->
+    <section class="slide" data-index="10">
+      <div class="quiz-card glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="tag-category" style="color: var(--primary);">
+            <i class="fa-solid fa-circle-question"></i> Mini Game Tương Tác
+          </div>
+          <span style="font-size: 0.85rem; color: var(--text-muted);" id="quizCounter">Câu hỏi 1 / 6</span>
+        </div>
+
+        <div id="quizContainer">
+          <div class="quiz-q-title" id="quizQuestion">
+            Quy định "Điểm thi môn học phải là số từ 0 đến 10" thể hiện thuộc tính nào của CSDL?
+          </div>
+
+          <div class="quiz-options" id="quizOptions" style="margin-top: 15px;">
+            <!-- Generated dynamically via JS -->
+          </div>
+
+          <div id="quizFeedback" style="margin-top: 16px; padding: 12px 18px; border-radius: 12px; display: none; font-size: 0.95rem;"></div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="nav-btn" id="btnNextQuiz" onclick="nextQuizQuestion()" style="display: none;">
+              Câu tiếp theo <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button class="nav-btn" id="btnFinish" onclick="nextSlide()" style="display: none; background: var(--primary); color: #000; border: none; font-weight: 700;">
+              Đến Lời Cảm Ơn <i class="fa-solid fa-heart" style="color: #e11d48;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: Lời Cảm Ơn & Kết Thúc -->
+    <section class="slide" data-index="11">
+      <div class="thankyou-card glass-card">
+        <div class="hero-badge">
+          <i class="fa-solid fa-heart heart-pulse"></i> PHẦN KẾT THÚC BÀI THUYẾT TRÌNH
+        </div>
+
+        <h1 class="thankyou-title">CẢM ƠN CÔ VÀ CÁC BẠN ĐÃ LẮNG NGHE!</h1>
+
+        <p class="thankyou-subtitle">
+          Bài thuyết trình của nhóm về chủ đề <b>"Một số thuộc tính cơ bản của CSDL"</b> (Tin học 11 - Kết nối tri thức) xin được phép khép lại tại đây.
+        </p>
+
+        <div class="thankyou-grid">
+          <div class="thankyou-box">
+            <i class="fa-solid fa-comments" style="color: var(--primary);"></i>
+            <h4>Hỏi & Đáp (Q&A)</h4>
+            <p>Nhóm chúng mình rất sẵn lòng lắng nghe và giải đáp mọi câu hỏi, thắc mắc từ cô giáo và các bạn!</p>
+          </div>
+          <div class="thankyou-box">
+            <i class="fa-solid fa-star" style="color: var(--accent-amber);"></i>
+            <h4>Nhận Xét & Đóng Góp</h4>
+            <p>Trân trọng tiếp thu mọi ý kiến đóng góp quý báu từ cô và các nhóm bạn để bài thuyết trình hoàn thiện hơn.</p>
+          </div>
+          <div class="thankyou-box">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--accent-green);"></i>
+            <h4>Lời Chúc</h4>
+            <p>Kính chúc cô luôn mạnh khỏe và chúc các bạn học sinh đạt điểm thật cao trong môn Tin học 11!</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;">
+          <button class="nav-btn" onclick="goToSlide(0)">
+            <i class="fa-solid fa-rotate-left"></i> Về trang bìa
+          </button>
+          <button class="nav-btn" onclick="goToSlide(2)">
+            <i class="fa-solid fa-cubes"></i> Xem lại 6 thuộc tính
+          </button>
+          <button class="nav-btn" onclick="goToSlide(10); resetQuiz();" style="background: var(--primary); color: #04101e; border: none; font-weight: 700;">
+            <i class="fa-solid fa-gamepad"></i> Chơi lại Mini Game
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation & Controls -->
+  <footer class="bottom-bar">
+    <div class="slide-counter">
+      <span id="currentSlideNumber">01</span> / <span id="totalSlideNumber">12</span>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <div class="deck-arrows">
+      <button class="arrow-btn" id="btnPrev" onclick="prevSlide()" title="Slide trước (Phím Mũi tên trái)">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button class="arrow-btn" id="btnNext" onclick="nextSlide()" title="Slide kế tiếp (Phím Mũi tên phải hoặc Space)">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Drawer Modal Slide Map -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+    <div class="drawer-modal" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <h3 style="font-family: var(--font-heading); font-size: 1.3rem;">
+          <i class="fa-solid fa-table-list" style="color: var(--primary);"></i> Danh Sách Tất Cả Slide
+        </h3>
+        <button class="nav-btn" onclick="toggleDrawer(false)"><i class="fa-solid fa-xmark"></i> Đóng</button>
+      </div>
+
+      <div class="drawer-grid" id="drawerGrid">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       1. SYNTHESIZED SOUND EFFECTS (Web Audio API - Zero External Files)
+       ========================================================= */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let soundEnabled = true;
+
+    function playBeep(freq = 600, duration = 0.08, type = 'sine') {
+      if (!soundEnabled || !audioCtx) return;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function soundSlide() { playBeep(520, 0.07, 'sine'); }
+    function soundCorrect() {
+      playBeep(587, 0.09, 'triangle');
+      setTimeout(() => playBeep(880, 0.15, 'triangle'), 100);
+    }
+    function soundWrong() {
+      playBeep(240, 0.12, 'sawtooth');
+      setTimeout(() => playBeep(180, 0.18, 'sawtooth'), 120);
+    }
+
+    document.getElementById('btnSound').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btnSound');
+      if (soundEnabled) {
+        btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Âm thanh';
+        btn.style.borderColor = 'var(--primary)';
+        playBeep(800, 0.1);
+      } else {
+        btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Tắt âm';
+        btn.style.borderColor = 'rgba(255,255,255,0.15)';
+      }
+    });
+
+    /* =========================================================
+       2. SLIDE NAVIGATION CONTROLLER
+       ========================================================= */
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+
+    const currentSlideNumEl = document.getElementById('currentSlideNumber');
+    const totalSlideNumEl = document.getElementById('totalSlideNumber');
+    const progressBar = document.getElementById('progressBar');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    totalSlideNumEl.textContent = totalSlides < 10 ? '0' + totalSlides : totalSlides;
+
+    function updateSlideUI() {
+      slides.forEach((s, idx) => {
+        s.classList.remove('active', 'prev');
+        if (idx === currentSlide) {
+          s.classList.add('active');
+        } else if (idx < currentSlide) {
+          s.classList.add('prev');
+        }
+      });
+
+      const displayNum = currentSlide + 1;
+      currentSlideNumEl.textContent = displayNum < 10 ? '0' + displayNum : displayNum;
+      
+      const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+      progressBar.style.width = progressPercent + '%';
+
+      btnPrev.disabled = currentSlide === 0;
+      btnNext.disabled = currentSlide === totalSlides - 1;
+
+      // Update drawer active status
+      document.querySelectorAll('.drawer-thumb').forEach((t, i) => {
+        if (i === currentSlide) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+
+    function goToSlide(index) {
+      if (index >= 0 && index < totalSlides && index !== currentSlide) {
+        currentSlide = index;
+        soundSlide();
+        updateSlideUI();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        soundSlide();
+        updateSlideUI();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        soundSlide();
+        updateSlideUI();
+      }
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return; // Don't trigger if typing in demo input
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        goToSlide(0);
+      } else if (e.key === 'End') {
+        goToSlide(totalSlides - 1);
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    // Fullscreen support
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    /* =========================================================
+       3. DRAWER MENU NAVIGATION
+       ========================================================= */
+    const slideTitles = [
+      "1. Trang bìa",
+      "2. CSDL là gì?",
+      "3. 6 Thuộc tính tổng quan",
+      "4. Tính cấu trúc",
+      "5. Tính không dư thừa",
+      "6. Tính độc lập dữ liệu",
+      "7. Tính toàn vẹn",
+      "8. Tính nhất quán",
+      "9. Bảo mật & an toàn",
+      "10. Ghi nhớ SGK",
+      "11. Mini Game đố vui",
+      "12. Lời cảm ơn"
+    ];
+
+    const drawerGrid = document.getElementById('drawerGrid');
+    slideTitles.forEach((title, i) => {
+      const card = document.createElement('div');
+      card.className = `drawer-thumb ${i === 0 ? 'active' : ''}`;
+      card.innerHTML = `
+        <div style="font-size: 1.2rem; color: var(--primary);"><i class="fa-solid fa-desktop"></i></div>
+        <span>${title}</span>
+      `;
+      card.addEventListener('click', () => {
+        goToSlide(i);
+        toggleDrawer(false);
+      });
+      drawerGrid.appendChild(card);
+    });
+
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    function toggleDrawer(open) {
+      if (open) drawerOverlay.classList.add('open');
+      else drawerOverlay.classList.remove('open');
+    }
+    document.getElementById('btnDrawer').addEventListener('click', () => toggleDrawer(true));
+    function closeDrawer(e) {
+      if (e.target === drawerOverlay) toggleDrawer(false);
+    }
+
+    /* =========================================================
+       4. INTERACTIVE DEMO 1: INTEGRITY CONSTRAINT CHECK
+       ========================================================= */
+    function checkIntegrity() {
+      const input = document.getElementById('scoreInput');
+      const res = document.getElementById('integrityResult');
+      const val = parseFloat(input.value);
+
+      if (isNaN(val)) {
+        soundWrong();
+        res.style.background = 'rgba(239, 68, 68, 0.15)';
+        res.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        res.style.color = '#fca5a5';
+        res.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span><b>Lỗi kiểu dữ liệu:</b> Bạn chưa nhập một số hợp lệ!</span>`;
+        return;
+      }
+
+      if (val >= 0.0 && val <= 10.0) {
+        soundCorrect();
+        res.style.background = 'rgba(16, 185, 129, 0.15)';
+        res.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        res.style.color = '#6ee7b7';
+        res.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span><b>Hợp lệ:</b> Điểm ${val} thỏa mãn ràng buộc [0.0 - 10.0]. CSDL chấp thuận ghi dữ liệu!</span>`;
+      } else {
+        soundWrong();
+        res.style.background = 'rgba(239, 68, 68, 0.15)';
+        res.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        res.style.color = '#fca5a5';
+        res.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span><b>Lỗi vi phạm toàn vẹn:</b> Điểm ${val} nằm ngoài khoảng [0 - 10]. CSDL từ chối ghi nhận!</span>`;
+      }
+    }
+
+    function setScore(v) {
+      document.getElementById('scoreInput').value = v;
+      checkIntegrity();
+    }
+
+    /* =========================================================
+       5. INTERACTIVE DEMO 2: CONSISTENCY TRANSACTION
+       ========================================================= */
+    let isTxRunning = false;
+    function runTransactionDemo() {
+      if (isTxRunning) return;
+      isTxRunning = true;
+
+      const accA = document.getElementById('accABalance');
+      const accB = document.getElementById('accBBalance');
+      const s1 = document.getElementById('txStep1');
+      const s2 = document.getElementById('txStep2');
+      const s3 = document.getElementById('txStep3');
+      const st = document.getElementById('txStatus');
+
+      // Reset
+      accA.textContent = "5.000.000 đ";
+      accB.textContent = "2.000.000 đ";
+      [s1, s2, s3].forEach(el => {
+        el.className = 'step-item';
+        el.querySelector('i').className = 'fa-solid fa-clock';
+      });
+      st.className = 'step-item';
+      st.textContent = "Đang xử lý giao dịch nguyên tử (ACID Transaction)...";
+
+      playBeep(440, 0.05);
+      s1.classList.add('success');
+      s1.querySelector('i').className = 'fa-solid fa-circle-check';
+
+      setTimeout(() => {
+        playBeep(520, 0.05);
+        s2.classList.add('success');
+        s2.querySelector('i').className = 'fa-solid fa-circle-check';
+        accA.textContent = "4.000.000 đ (-1.000.000 đ)";
+        accA.style.color = '#f87171';
+
+        setTimeout(() => {
+          playBeep(660, 0.08);
+          s3.classList.add('success');
+          s3.querySelector('i').className = 'fa-solid fa-circle-check';
+          accB.textContent = "3.000.000 đ (+1.000.000 đ)";
+          accB.style.color = '#34d399';
+
+          st.className = 'step-item success';
+          st.innerHTML = '<i class="fa-solid fa-shield-check"></i> Giao dịch thành công hoàn hảo! Đảm bảo tính nhất quán!';
+          soundCorrect();
+          isTxRunning = false;
+        }, 1200);
+      }, 1000);
+    }
+
+    /* =========================================================
+       6. INTERACTIVE DEMO 3: MINI QUIZ (6 CÂU HỎI TRỌNG TÂM)
+       ========================================================= */
+    const quizData = [
+      {
+        q: "Quy định 'Điểm thi môn học phải là số từ 0 đến 10' thể hiện thuộc tính nào của CSDL?",
+        opts: ["Tính không dư thừa", "Tính toàn vẹn", "Tính độc lập dữ liệu", "Tính cấu trúc"],
+        correct: 1,
+        exp: "Tính toàn vẹn đòi hỏi các giá trị dữ liệu lưu trữ phải thỏa mãn các ràng buộc phản ánh đúng thực tế khách quan."
+      },
+      {
+        q: "Khi nhà trường nâng cấp máy chủ từ ổ HDD sang SSD nhưng phần mềm xem điểm vẫn hoạt động bình thường mà không cần sửa mã nguồn, đây là minh chứng cho thuộc tính nào?",
+        opts: ["Tính toàn vẹn", "Tính không dư thừa", "Tính độc lập dữ liệu", "Tính bảo mật & an toàn"],
+        correct: 2,
+        exp: "Tính độc lập dữ liệu cho phép thay đổi phương tiện lưu trữ hoặc cấu trúc vật lý mà không làm ảnh hưởng đến ứng dụng bên trên."
+      },
+      {
+        q: "Dữ liệu trong CSDL được lưu trữ có trật tự dưới dạng bảng gồm các hàng (bản ghi) và các cột (trường) thể hiện thuộc tính nào?",
+        opts: ["Tính cấu trúc", "Tính nhất quán", "Tính bảo mật và an toàn", "Tính độc lập dữ liệu"],
+        correct: 0,
+        exp: "Tính cấu trúc thể hiện ở việc dữ liệu được tổ chức theo khuôn dạng xác định, trực quan nhất là dạng bảng gồm các hàng và các cột."
+      },
+      {
+        q: "Trong giao dịch ngân hàng, số tiền bị trừ ở tài khoản gửi bắt buộc phải được cộng vào tài khoản nhận. Nếu gặp sự cố, hệ thống sẽ tự động hoàn tác để đảm bảo:",
+        opts: ["Tính cấu trúc", "Tính không dư thừa", "Tính nhất quán", "Tính toàn vẹn"],
+        correct: 2,
+        exp: "Tính nhất quán bảo đảm dữ liệu luôn đúng đắn và chuẩn xác sau mọi thao tác cập nhật, không xảy ra mâu thuẫn giao dịch."
+      },
+      {
+        q: "Tại sao CSDL cần tránh lưu lặp đi lặp lại thông tin Giáo viên chủ nhiệm vào từng hồ sơ học sinh trong cùng một lớp?",
+        opts: ["Để đảm bảo tính không dư thừa", "Để đảm bảo tính toàn vẹn", "Để đảm bảo tính độc lập dữ liệu", "Để đảm bảo tính cấu trúc"],
+        correct: 0,
+        exp: "Tính không dư thừa giúp tiết kiệm dung lượng lưu trữ và tránh nguy cơ sai lệch dữ liệu khi phải cập nhật ở nhiều nơi."
+      },
+      {
+        q: "Hệ thống CSDL phân quyền cho học sinh chỉ được xem điểm của mình, còn giáo viên mới có quyền nhập và sửa điểm nhằm đảm bảo thuộc tính nào?",
+        opts: ["Tính không dư thừa", "Tính bảo mật và an toàn", "Tính cấu trúc", "Tính độc lập dữ liệu"],
+        correct: 1,
+        exp: "Tính bảo mật và an toàn giúp ngăn chặn truy xuất trái phép, phân quyền truy cập và bảo vệ dữ liệu không bị sai lệch, mất mát."
+      }
+    ];
+
+    let currentQuizIdx = 0;
+    let quizAnswered = false;
+
+    function renderQuiz() {
+      const q = quizData[currentQuizIdx];
+      document.getElementById('quizCounter').textContent = `Câu hỏi ${currentQuizIdx + 1} / ${quizData.length}`;
+      document.getElementById('quizQuestion').textContent = q.q;
+      const optsContainer = document.getElementById('quizOptions');
+      optsContainer.innerHTML = '';
+      
+      const letters = ['A', 'B', 'C', 'D'];
+      q.opts.forEach((opt, idx) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerHTML = `<b>${letters[idx]}.</b> ${opt}`;
+        div.onclick = () => answerQuiz(idx, div);
+        optsContainer.appendChild(div);
+      });
+
+      const fb = document.getElementById('quizFeedback');
+      fb.style.display = 'none';
+      document.getElementById('btnNextQuiz').style.display = 'none';
+      document.getElementById('btnFinish').style.display = 'none';
+      quizAnswered = false;
+    }
+
+    function answerQuiz(selectedIdx, el) {
+      if (quizAnswered) return; // Đã trả lời đúng câu này rồi
+      if (el.classList.contains('wrong')) return; // Đã bấm sai trước đó
+
+      const q = quizData[currentQuizIdx];
+      const fb = document.getElementById('quizFeedback');
+
+      if (selectedIdx === q.correct) {
+        // Đúng: Tô xanh đáp án này, phát âm thanh chúc mừng, mở nút câu tiếp/kết thúc
+        quizAnswered = true;
+        el.classList.add('correct');
+        soundCorrect();
+        fb.style.display = 'block';
+        fb.style.background = 'rgba(16, 185, 129, 0.15)';
+        fb.style.color = '#6ee7b7';
+        fb.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+        fb.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>Chính xác!</b> ${q.exp}`;
+
+        if (currentQuizIdx < quizData.length - 1) {
+          document.getElementById('btnNextQuiz').style.display = 'inline-flex';
+        } else {
+          document.getElementById('btnFinish').style.display = 'inline-flex';
+        }
+      } else {
+        // Sai: Chỉ tô đỏ lựa chọn vừa bấm, KHÔNG hiện đáp án đúng, cho phép cả lớp suy nghĩ chọn tiếp!
+        el.classList.add('wrong');
+        soundWrong();
+        fb.style.display = 'block';
+        fb.style.background = 'rgba(239, 68, 68, 0.15)';
+        fb.style.color = '#fca5a5';
+        fb.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        fb.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <b>Chưa chính xác!</b> Hãy suy nghĩ kỹ hơn và thử lại với đáp án khác nhé!`;
+      }
+    }
+
+    function resetQuiz() {
+      currentQuizIdx = 0;
+      renderQuiz();
+    }
+
+    function nextQuizQuestion() {
+      if (currentQuizIdx < quizData.length - 1) {
+        currentQuizIdx++;
+        renderQuiz();
+      }
+    }
+
+    renderQuiz();
+
+    /* =========================================================
+       7. PARTICLE NETWORK BACKGROUND (CANVAS)
+       ========================================================= */
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.7;
+        this.vy = (Math.random() - 0.5) * 0.7;
+        this.radius = Math.random() * 2 + 1;
+        this.color = Math.random() > 0.4 ? 'rgba(0, 242, 254, ' : 'rgba(168, 85, 247, ';
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + '0.7)';
+        ctx.fill();
+      }
+    }
+
+    const particleCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 14000), 75);
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Connect lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const alpha = (1 - dist / 130) * 0.18;
+            ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+  </script>
+</body>
+</html>
